@@ -8,6 +8,7 @@ from collections import deque
 
 class LaneDetector:
     def __init__(self):
+        rospy.init_node('lane_detector_node', anonymous=True)
         self.bridge = CvBridge()
         self.image_sub = rospy.Subscriber('/camera/rgb/image_raw', Image, self.image_callback, queue_size=1)
         self.image_pub = rospy.Publisher('/processed_image', Image, queue_size=1)
@@ -283,7 +284,6 @@ class LaneDetector:
             rospy.logerr(f"Error processing image: {str(e)}")
 
 def main():
-    rospy.init_node('lane_detector')
     LaneDetector()
     try:
         rospy.spin()
