@@ -1,0 +1,57 @@
+<launch>
+    <!-- Arguments -->
+    <arg name="gui" default="true"/>
+    <arg name="mode" default="day_empty" doc="mode of the track to load, valid options are 'day' or 'night'"/>
+    
+    <!-- Step 1: Launch Gazebo and load world (starts immediately) -->
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <arg name="world_name" value="$(find aws_robomaker_racetrack_world)/worlds/racetrack_$(arg mode).world"/>
+        <arg name="paused" value="false"/>
+        <arg name="use_sim_time" value="true"/>
+        <arg name="gui" value="$(arg gui)"/>
+        <arg name="headless" value="false"/>
+        <arg name="debug" value="false"/>
+    </include>
+
+    <!-- Step 2: Load Husky Control and Robot Description -->
+    <include file="$(find husky_control)/launch/control.launch"/>
+    
+    <param name="robot_description" 
+           command="$(find xacro)/xacro '$(find adas_project)/urdf/custom_husky.urdf.xacro'" />
+
+    <!-- Step 3: Spawn Husky (after Gazebo is fully loaded) -->
+    <node pkg="gazebo_ros" type="spawn_model" 
+          name="spawn_husky" 
+          output="screen"
+          args="-urdf -model husky -x 2.75 -y -15.50 -z 0.1 -param robot_description"
+          launch-prefix="bash -c 'sleep 5.0; $0 $@'" />
+
+    <!-- Step 4: Launch RViz (after robot is spawned) -->
+    <node name="rviz" 
+          pkg="rviz" 
+          type="rviz" 
+          args="-d $(find adas_project)/rviz/adas_config.rviz" 
+          output="screen"
+          launch-prefix="bash -c 'sleep 8.0; $0 $@'">
+        <env name="DISPLAY" value=":0"/>
+        <env name="QT_X11_NO_MITSHM" value="1"/>
+    </node>
+
+    <!-- Step 5: Launch Lane Follower (after RViz) -->
+    <node name="lane_detector_node" 
+          pkg="adas_project" 
+          type="lane_follower_publisher.py" 
+          output="screen"
+          launch-prefix="bash -c 'sleep 10.0; $0 $@'" />
+
+    <!-- Step 6: Launch YOLO Object Detection (last) -->
+    <node name="yolo_detector" 
+          pkg="adas_project" 
+          type="object_detection_publisher.py" 
+          output="screen"
+          launch-prefix="bash -c 'sleep 12.0; $0 $@'">
+        <param name="min_depth" value="0.5"/>
+        <param name="max_depth" value="10.0"/>
+    </node>
+
+</launch>

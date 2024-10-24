@@ -8,7 +8,7 @@ from cv_bridge import CvBridge
 
 class MotionController:
     def __init__(self):
-        rospy.init_node('motion_controller', anonymous=True)
+        rospy.init_node('motion_controller_node', anonymous=True)
         self.bridge = CvBridge()
         
         # Motion parameters

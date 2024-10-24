@@ -1,0 +1,7 @@
+<launch>
+    <!-- Lane Detector Node -->
+    <node pkg="adas_project" type="lane_follower_publisher.py" name="lane_detector_node" output="screen"/>
+    
+    <!-- Motion Controller Node -->
+    <node pkg="adas_project" type="motion_controller.py" name="motion_controller_node" output="screen"/>
+</launch>
