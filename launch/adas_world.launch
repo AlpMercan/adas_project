@@ -7,8 +7,7 @@
   <include file="$(find husky_control)/launch/control.launch"/>
 
    <param name="robot_description" 
-         command="$(find xacro)/xacro '$(find adas_project)/husky/husky_description/urdf/custom_husky.urdf.xacro'" />
-
+         command="$(find xacro)/xacro '$(find adas_project)/urdf/custom_husky.urdf.xacro'" />
 
   <!-- Robot state publisher -->
   <!--node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/-->
