@@ -10,6 +10,7 @@
          command="$(find xacro)/xacro '$(find adas_project)/urdf/custom_husky.urdf.xacro'" />
 
   <!-- Robot state publisher -->
+  <!--Control dosyasının da içine gömüldüğü için conflcit çıkıyor -->
   <!--node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/-->
 
   <!-- Gazebo world launch -->
@@ -24,7 +25,7 @@
 
   <!-- Spawn Husky -->
   <node pkg="gazebo_ros" type="spawn_model" name="spawn_husky" output="screen"
-        args="-urdf -model husky -x 2.75 -y -14.00 -z 0.1 -param robot_description"
+        args="-urdf -model husky -x 2.75 -y -15.50 -z 0.1 -param robot_description"
         launch-prefix="bash -c 'sleep 5.0; $0 $@'" />
 
 </launch>
