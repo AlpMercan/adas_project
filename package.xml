@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>adas_project</name>
+  <version>0.0.1</version>
+  <description>ADAS project for object detection and obstacle avoidance</description>
+
+  <maintainer email="your_email@example.com">Your Name</maintainer>
+  <license>Proprietary</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- Core ROS dependencies -->
+  <build_depend>roscpp</build_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>std_msgs</build_depend>
+  
+  <!-- Perception dependencies -->
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>cv_bridge</build_depend>
+  <build_depend>image_transport</build_depend>
+  
+  <!-- Navigation dependencies -->
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>nav_msgs</build_depend>
+  
+  <!-- Transformation and visualization -->
+  <build_depend>tf2</build_depend>
+  <build_depend>tf2_ros</build_depend>
+  <build_depend>visualization_msgs</build_depend>
+  
+  <!-- Simulation -->
+  <build_depend>gazebo_ros</build_depend>
+  <build_depend>gazebo_msgs</build_depend>
+
+  <!-- Message generation -->
+  <build_depend>message_generation</build_depend>
+  
+  <!-- Runtime dependencies -->
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>cv_bridge</exec_depend>
+  <exec_depend>image_transport</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>nav_msgs</exec_depend>
+  <exec_depend>tf2</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>visualization_msgs</exec_depend>
+  <exec_depend>gazebo_ros</exec_depend>
+  <exec_depend>gazebo_msgs</exec_depend>
+  <exec_depend>message_runtime</exec_depend>
+</package>

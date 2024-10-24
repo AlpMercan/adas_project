@@ -1,0 +1,31 @@
+<launch>
+  <!-- Arguments -->
+  <arg name="gui" default="true"/>
+  <arg name="mode" default="day_empty" doc="mode of the track to load, valid options are 'day' or 'night'"/>
+  
+  <!-- Load Husky Control -->
+  <include file="$(find husky_control)/launch/control.launch"/>
+
+   <param name="robot_description" 
+         command="$(find xacro)/xacro '$(find adas_project)/husky/husky_description/urdf/custom_husky.urdf.xacro'" />
+
+
+  <!-- Robot state publisher -->
+  <!--node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/-->
+
+  <!-- Gazebo world launch -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find aws_robomaker_racetrack_world)/worlds/racetrack_$(arg mode).world"/>
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" default="$(arg gui)"/>
+    <arg name="headless" value="false"/>
+    <arg name="debug" value="false"/>
+  </include>
+
+  <!-- Spawn Husky -->
+  <node pkg="gazebo_ros" type="spawn_model" name="spawn_husky" output="screen"
+        args="-urdf -model husky -x 2.75 -y -14.00 -z 0.1 -param robot_description"
+        launch-prefix="bash -c 'sleep 5.0; $0 $@'" />
+
+</launch>
