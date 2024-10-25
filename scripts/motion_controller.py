@@ -12,7 +12,7 @@ class MotionController:
         self.bridge = CvBridge()
         
         # Motion parameters
-        self.linear_speed = 0.5
+        self.linear_speed = 1
         self.max_angular_speed = 0.5
         
         # PID parameters

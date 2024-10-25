@@ -1,7 +1,34 @@
 <launch>
+    <!-- RGB and Depth Camera Parameters -->
+    <arg name="depth_scale" default="0.001"/>  <!-- Default for RealSense (1mm = 0.001m) -->
+    <arg name="min_depth" default="0.5"/>      <!-- Minimum detection distance in meters -->
+    <arg name="max_depth" default="10.0"/>     <!-- Maximum detection distance in meters -->
+
     <!-- Lane Detector Node -->
     <node pkg="adas_project" type="lane_follower_publisher.py" name="lane_detector_node" output="screen"/>
     
-    <!-- Motion Controller Node -->
-    <node pkg="adas_project" type="motion_controller.py" name="motion_controller_node" output="screen"/>
+    <!-- YOLO Depth Detector Node -->
+    <node pkg="adas_project" type="object_detection_publisher.py" name="yolo_depth_detector" output="screen">
+        <param name="depth_scale" value="$(arg depth_scale)"/>
+        <param name="min_depth" value="$(arg min_depth)"/>
+        <param name="max_depth" value="$(arg max_depth)"/>
+    </node>
+    
+    <!-- Enhanced Motion Controller Node -->
+    <node pkg="adas_project" type="motion_controller.py" name="enhanced_motion_controller_node" output="screen">
+        <!-- Lane following parameters -->
+        <param name="linear_speed" value="0.5"/>
+        <param name="max_angular_speed" value="0.5"/>
+        <param name="Kp" value="0.005"/>
+        <param name="Ki" value="0.0001"/>
+        <param name="Kd" value="0.001"/>
+        
+        <!-- Obstacle avoidance parameters -->
+        <param name="min_safe_distance" value="1.5"/>
+        <param name="slow_down_distance" value="3.0"/>
+        <param name="stop_distance" value="1.0"/>
+    </node>
+
+    <!-- Optional: RViz for visualization -->
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find adas_project)/rviz/adas_config.rviz" required="false"/>
 </launch>
