@@ -43,7 +43,7 @@ class LaneDetector:
         # Görselleştirme için ROI'yi çiz
         roi_visualization = img.copy()
         cv2.polylines(roi_visualization, [roi_vertices], True, (0, 255, 0), 2)
-        cv2.imshow('ROI Visualization', roi_visualization)
+        #cv2.imshow('ROI Visualization', roi_visualization)
         
         # Maske oluştur
         mask = np.zeros_like(img)
@@ -88,7 +88,7 @@ class LaneDetector:
         
         transform_visualization = img.copy()
         cv2.polylines(transform_visualization, [src_points.astype(np.int32)], True, (255, 0, 0), 2)
-        cv2.imshow('Perspective Transform Points', transform_visualization)
+        #cv2.imshow('Perspective Transform Points', transform_visualization)
         
         return warped
     
@@ -193,7 +193,6 @@ class LaneDetector:
             # Şerit tespiti güvenilirliğini hesapla
             left_points = len(leftx)
             right_points = len(rightx)
-            self.lane_detection_confidence = min(1.0, (left_points + right_points) / (2 * self.min_pixels))
             
             # Geçmiş değerleri kaydet
             self.left_fit_history.append(left_fit)
@@ -242,10 +241,7 @@ class LaneDetector:
         newwarp = cv2.warpPerspective(color_warp, self.Minv, 
                                     (original_img.shape[1], original_img.shape[0]))
         
-        # Güven seviyesini görüntüye ekle
-        confidence_text = f"Lane Detection Confidence: {self.lane_detection_confidence:.2f}"
-        cv2.putText(newwarp, confidence_text, (10, 30), 
-                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+        
         
         # Görüntüleri birleştir (opaklığı biraz artırdım)
         result = cv2.addWeighted(original_img, 1, newwarp, 0.4, 0)
@@ -257,15 +253,15 @@ class LaneDetector:
             
             # ROI uygula
             roi_image = self.region_of_interest(cv_image)
-            cv2.imshow('ROI', roi_image)
+            #cv2.imshow('ROI', roi_image)
             
             # Perspektif dönüşümü uygula
             warped_image = self.perspective_transform(roi_image)
-            cv2.imshow('Warped', warped_image)
+            #cv2.imshow('Warped', warped_image)
             
             # Renk ve kenar tespiti
             binary = self.color_threshold(warped_image)
-            cv2.imshow('Binary', binary)
+            #cv2.imshow('Binary', binary)
             
             # Şeritleri tespit et ve çiz
             left_fitx, right_fitx, ploty = self.fit_polynomial(binary)
