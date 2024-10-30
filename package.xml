@@ -34,6 +34,7 @@
 
   <!-- Message generation -->
   <build_depend>message_generation</build_depend>
+  <exec_depend>message_runtime</exec_depend>
   
   <!-- Runtime dependencies -->
   <exec_depend>roscpp</exec_depend>

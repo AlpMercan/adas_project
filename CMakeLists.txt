@@ -21,12 +21,10 @@ find_package(catkin REQUIRED COMPONENTS
 # Find OpenCV
 find_package(OpenCV REQUIRED)
 
-# Declare custom messages if needed
-# add_message_files(
-#   FILES
-#   DetectedObject.msg
-#   TimeToCollision.msg
-# )
+add_message_files(
+  FILES
+  ObjectLocation.msg
+)
 
 # Declare custom services if needed
 # add_service_files(
