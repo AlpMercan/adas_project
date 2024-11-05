@@ -18,8 +18,8 @@ class LaneDetector:
         self.Minv = None
         
         # Lane detection history için deque
-        self.left_fit_history = deque(maxlen=5)
-        self.right_fit_history = deque(maxlen=5)
+        self.left_fit_history = deque(maxlen=7)
+        self.right_fit_history = deque(maxlen=7)
         
         # Confidence değerleri
         self.min_pixels = 50
@@ -32,12 +32,12 @@ class LaneDetector:
         
         # ROI'yi daha geniş ve daha yükseğe çıkan bir şekilde tanımlayalım
         roi_vertices = np.array([
-            [(0, height),                    # Sol alt
-            (0, height * 0.5),             # Sol orta - daha yukarı çektik
-            (width * 0.25, height * 0.35),  # Sol üst - daha yukarı
-            (width * 0.75, height * 0.35),  # Sağ üst - daha yukarı
-            (width, height * 0.5),         # Sağ orta - daha yukarı çektik
-            (width, height)]               # Sağ alt
+            [(0, height),
+             (width * 0.1, height * 0.6),    # Adjusted for better focus
+             (width * 0.4, height * 0.4),     # Narrowed top points
+             (width * 0.6, height * 0.4),
+             (width * 0.9, height * 0.6),
+             (width, height)]
         ], dtype=np.int32)
         
         # Görselleştirme için ROI'yi çiz
