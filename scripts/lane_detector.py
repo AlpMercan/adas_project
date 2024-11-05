@@ -16,7 +16,7 @@ class LaneDetector:
         self.image_pub = rospy.Publisher('/processed_image', Image, queue_size=1)
         
         # Define image dimensions
-        self.width = 1000
+        self.width = 800
         self.height = 480
         
         # Define ROI
@@ -64,8 +64,44 @@ class LaneDetector:
         self.M = cv2.getPerspectiveTransform(self.src_points, self.dst_points)
         self.Minv = cv2.getPerspectiveTransform(self.dst_points, self.src_points)
 
+    def color_threshold(self, image):
+        """Apply color thresholding to detect white and red colors"""
+        # Convert to HSV color space
+        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+        
+        # White color mask (adjusted parameters)
+        lower_white = np.array([0, 0, 200])
+        upper_white = np.array([180, 30, 255])
+        white_mask = cv2.inRange(hsv, lower_white, upper_white)
+        
+        # Red color mask (two ranges because red wraps around in HSV)
+        lower_red1 = np.array([0, 100, 100])
+        upper_red1 = np.array([10, 255, 255])
+        lower_red2 = np.array([160, 100, 100])
+        upper_red2 = np.array([180, 255, 255])
+        
+        red_mask1 = cv2.inRange(hsv, lower_red1, upper_red1)
+        red_mask2 = cv2.inRange(hsv, lower_red2, upper_red2)
+        red_mask = cv2.bitwise_or(red_mask1, red_mask2)
+        
+        # Combine masks
+        combined_mask = cv2.bitwise_or(white_mask, red_mask)
+        
+        # Apply morphological operations to reduce noise
+        kernel = np.ones((3,3), np.uint8)
+        combined_mask = cv2.morphologyEx(combined_mask, cv2.MORPH_CLOSE, kernel)
+        combined_mask = cv2.morphologyEx(combined_mask, cv2.MORPH_OPEN, kernel)
+        
+        # Create debug visualization
+        color_debug = np.dstack((combined_mask, combined_mask, combined_mask))
+        color_debug[white_mask > 0] = [255, 255, 255]  # White
+        color_debug[red_mask > 0] = [0, 0, 255]        # Red
+        
+        cv2.imshow('Color Threshold Debug', color_debug)
+        
+        return combined_mask
     def find_lane_pixels(self, binary_warped):
-        """Find pixels for three lanes using sliding window method"""
+        """Find lane pixels using sliding window method with three lane detection"""
         # Take a histogram of the bottom half of the image
         histogram = np.sum(binary_warped[binary_warped.shape[0]//2:,:], axis=0)
         
@@ -156,7 +192,7 @@ class LaneDetector:
             middle_lane_inds.append(good_mid_inds)
             right_lane_inds.append(good_right_inds)
             
-            # Recenter next window if enough pixels found
+            # If found enough pixels, recenter next window
             if len(good_left_inds) > self.minpix:
                 leftx_current = np.int32(np.mean(nonzerox[good_left_inds]))
             if len(good_mid_inds) > self.minpix:
@@ -230,27 +266,31 @@ class LaneDetector:
             left_fitx = left_fit[0]*ploty**2 + left_fit[1]*ploty + left_fit[2]
             middle_fitx = middle_fit[0]*ploty**2 + middle_fit[1]*ploty + middle_fit[2]
             right_fitx = right_fit[0]*ploty**2 + right_fit[1]*ploty + right_fit[2]
-        except TypeError:
+        except (TypeError, AttributeError):
             return None
         
         # Create image to draw on
         out_img = np.dstack((binary_warped, binary_warped, binary_warped))*255
         
-        # Draw left lane area (blue)
+        # Draw left lane area (blue with transparency)
         if left_fit is not None and middle_fit is not None:
             pts_left = np.hstack((
                 np.array([np.transpose(np.vstack([left_fitx, ploty]))]),
                 np.array([np.flipud(np.transpose(np.vstack([middle_fitx, ploty])))])
             ))
-            cv2.fillPoly(out_img, np.int_([pts_left]), (255, 0, 0))
+            overlay = out_img.copy()
+            cv2.fillPoly(overlay, np.int_([pts_left]), (255, 0, 0))
+            out_img = cv2.addWeighted(overlay, 0.3, out_img, 0.7, 0)
         
-        # Draw middle lane area (green)
+        # Draw middle lane area (green with transparency)
         if middle_fit is not None and right_fit is not None:
             pts_middle = np.hstack((
                 np.array([np.transpose(np.vstack([middle_fitx, ploty]))]),
                 np.array([np.flipud(np.transpose(np.vstack([right_fitx, ploty])))])
             ))
-            cv2.fillPoly(out_img, np.int_([pts_middle]), (0, 255, 0))
+            overlay = out_img.copy()
+            cv2.fillPoly(overlay, np.int_([pts_middle]), (0, 255, 0))
+            out_img = cv2.addWeighted(overlay, 0.3, out_img, 0.7, 0)
         
         # Draw the actual lane lines
         if left_fit is not None:
@@ -258,21 +298,33 @@ class LaneDetector:
                 cv2.line(out_img, 
                         (int(left_fitx[i]), int(ploty[i])), 
                         (int(left_fitx[i+1]), int(ploty[i+1])), 
-                        (255, 200, 0), 4)
+                        (255, 200, 0), 4)  # Bright blue
         
         if middle_fit is not None:
             for i in range(len(ploty)-1):
                 cv2.line(out_img, 
                         (int(middle_fitx[i]), int(ploty[i])), 
                         (int(middle_fitx[i+1]), int(ploty[i+1])), 
-                        (0, 255, 0), 4)
+                        (0, 255, 0), 4)  # Green
         
         if right_fit is not None:
             for i in range(len(ploty)-1):
                 cv2.line(out_img, 
                         (int(right_fitx[i]), int(ploty[i])), 
                         (int(right_fitx[i+1]), int(ploty[i+1])), 
-                        (0, 200, 255), 4)
+                        (0, 200, 255), 4)  # Bright red
+        
+        # Add curve information
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        if left_fit is not None:
+            cv2.putText(out_img, f'Left curve: {left_fit[0]:.6f}', 
+                       (30, 30), font, 0.7, (255, 255, 255), 2)
+        if middle_fit is not None:
+            cv2.putText(out_img, f'Middle curve: {middle_fit[0]:.6f}', 
+                       (30, 60), font, 0.7, (255, 255, 255), 2)
+        if right_fit is not None:
+            cv2.putText(out_img, f'Right curve: {right_fit[0]:.6f}', 
+                       (30, 90), font, 0.7, (255, 255, 255), 2)
         
         return out_img
 
@@ -331,6 +383,7 @@ class LaneDetector:
                     font = cv2.FONT_HERSHEY_SIMPLEX
                     font_scale = 0.7
                     thickness = 2
+                    color = (0, 255, 0)  # Green text
                     
                     # Display number of points detected for each lane
                     debug_info = [
@@ -342,31 +395,9 @@ class LaneDetector:
                     y_offset = 30
                     for i, text in enumerate(debug_info):
                         cv2.putText(result, text, 
-                                (30, y_offset + i*30),
-                                font, font_scale, (0, 255, 0), 
-                                thickness)
-                    
-                    # Display curve coefficients if available
-                    if left_fit is not None:
-                        cv2.putText(result, 
-                                f"Left Curve: {left_fit[0]:.6f}",
-                                (30, y_offset + 90),
-                                font, font_scale, (255, 0, 0),
-                                thickness)
-                    
-                    if middle_fit is not None:
-                        cv2.putText(result, 
-                                f"Middle Curve: {middle_fit[0]:.6f}",
-                                (30, y_offset + 120),
-                                font, font_scale, (0, 255, 0),
-                                thickness)
-                    
-                    if right_fit is not None:
-                        cv2.putText(result, 
-                                f"Right Curve: {right_fit[0]:.6f}",
-                                (30, y_offset + 150),
-                                font, font_scale, (0, 0, 255),
-                                thickness)
+                                  (30, y_offset + i*30),
+                                  font, font_scale, color, 
+                                  thickness)
                     
                     # Show all visualization windows
                     cv2.imshow('Original with Lanes', result)
@@ -389,42 +420,6 @@ class LaneDetector:
         except Exception as e:
             rospy.logerr(f"Error processing image: {str(e)}")
             rospy.logerr(f"Error occurred at line {e.__traceback__.tb_lineno}")
-    def color_threshold(self, image):
-        """Apply color thresholding to detect white and red colors with improved parameters"""
-        # Convert to HSV color space
-        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-        
-        # White color mask (adjusted parameters)
-        lower_white = np.array([0, 0, 200])
-        upper_white = np.array([180, 30, 255])
-        white_mask = cv2.inRange(hsv, lower_white, upper_white)
-        
-        # Red color mask (two ranges because red wraps around in HSV)
-        lower_red1 = np.array([0, 100, 100])
-        upper_red1 = np.array([10, 255, 255])
-        lower_red2 = np.array([160, 100, 100])
-        upper_red2 = np.array([180, 255, 255])
-        
-        red_mask1 = cv2.inRange(hsv, lower_red1, upper_red1)
-        red_mask2 = cv2.inRange(hsv, lower_red2, upper_red2)
-        red_mask = cv2.bitwise_or(red_mask1, red_mask2)
-        
-        # Combine masks
-        combined_mask = cv2.bitwise_or(white_mask, red_mask)
-        
-        # Apply morphological operations to reduce noise
-        kernel = np.ones((3,3), np.uint8)
-        combined_mask = cv2.morphologyEx(combined_mask, cv2.MORPH_CLOSE, kernel)
-        combined_mask = cv2.morphologyEx(combined_mask, cv2.MORPH_OPEN, kernel)
-        
-        # Create debug visualization
-        color_debug = np.dstack((combined_mask, combined_mask, combined_mask))
-        color_debug[white_mask > 0] = [255, 255, 255]  # White
-        color_debug[red_mask > 0] = [0, 0, 255]        # Red
-        
-        cv2.imshow('Color Threshold Debug', color_debug)
-        
-        return combined_mask
 
 def main():
     try:

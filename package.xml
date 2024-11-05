@@ -3,7 +3,6 @@
   <name>adas_project</name>
   <version>0.0.1</version>
   <description>ADAS project for object detection and obstacle avoidance</description>
-
   <maintainer email="your_email@example.com">Your Name</maintainer>
   <license>Proprietary</license>
 
@@ -35,6 +34,12 @@
   <!-- Message generation -->
   <build_depend>message_generation</build_depend>
   <exec_depend>message_runtime</exec_depend>
+
+  <!-- Added dependencies for C++ nodes -->
+  <build_depend>message_filters</build_depend>
+  <build_depend>eigen</build_depend>
+  <exec_depend>message_filters</exec_depend>
+  <exec_depend>eigen</exec_depend>
   
   <!-- Runtime dependencies -->
   <exec_depend>roscpp</exec_depend>
@@ -50,5 +55,11 @@
   <exec_depend>visualization_msgs</exec_depend>
   <exec_depend>gazebo_ros</exec_depend>
   <exec_depend>gazebo_msgs</exec_depend>
-  <exec_depend>message_runtime</exec_depend>
+
+  <!-- For OpenCV -->
+  <build_depend>libopencv-dev</build_depend>
+  <exec_depend>libopencv-dev</exec_depend>
+
+  <export>
+  </export>
 </package>
