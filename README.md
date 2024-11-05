@@ -244,4 +244,5 @@ MIT License
 
 ## Authors
 - Alp Mercan
-- [Additional contributors]
+## Images and Videos
+
