@@ -1,4 +1,4 @@
-![ObstacleAVoidance3](https://github.com/user-attachments/assets/a3f71295-e02d-42c4-bea2-21560978039b)# Advanced Driver Assistance System (ADAS)
+![ObstacleAVoidance3](https://github.com/user-attachments/assets/a3f71295-e02d-42c4-bea2-21560978039b)
 
 ## Overview
 This repository contains a comprehensive implementation of an Advanced Driver Assistance System (ADAS) using ROS (Robot Operating System). The system integrates lane detection, motion control, and safety features to provide autonomous driving capabilities with a focus on safety and reliability.
